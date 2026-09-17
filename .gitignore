@@ -1,0 +1,6 @@
+.env
+Chroma_db/
+__pycache__/
+*.pyc
+music/
+archeology/
