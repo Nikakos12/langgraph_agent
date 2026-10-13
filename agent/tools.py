@@ -6,6 +6,9 @@ from langchain.tools import tool
 import os
 from config import llm, music_filepath, chroma_arch_path, chroma_music_path, archeology_filepath
 
+# ----------------------> Pydantic Imports
+from pydantic import BaseModel, Field
+
 pdf_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap = 150)
 embeddings = OllamaEmbeddings(model = "nomic-embed-text")
 
@@ -65,20 +68,27 @@ def get_or_create_vectorstore_retriever(chroma_path: str, collection_name: str, 
 m_retriever = get_or_create_vectorstore_retriever(chroma_music_path, "music", file_path_pdf= music_filepath)
 arch_retriever = get_or_create_vectorstore_retriever(chroma_arch_path, "arch", file_path_pdf= archeology_filepath)
 
+# ---------------------- Pydantic Schemas για τα Inputs των εργαλείων
+class MusicSearchInput(BaseModel):
+    query: str = Field(description= "The specific search query to look up inside the music and music career documentation.")
+
+class ArchSearchInput(BaseModel):
+    query: str = Field(description="The specific search query to look up inside the archaeology and archaeology career documentation.")
+
 # ------------------------ create tools
 def get_tools():
     """You get the two retriever tools"""
     # ----------------------- create retrievers tool
-    @tool
-    def music_retriever_tool(query:str):
+    @tool(args_schema=MusicSearchInput)
+    def music_retriever_tool(query:str) -> str:
         "In every question about music or music carrer use this tool to retrieve relevant documents"
         
         result = m_retriever.invoke(query)
         print("---- Tool was called----")
         return "\n\n".join([doc.page_content for doc in result])
 
-    @tool
-    def arch_retriever_tool(query:str):
+    @tool(args_schema=ArchSearchInput)
+    def arch_retriever_tool(query:str) -> str:
         "In every question about archeology or archeology carrer use this tool to retrieve relevant documents"
         
         result = arch_retriever.invoke(query)

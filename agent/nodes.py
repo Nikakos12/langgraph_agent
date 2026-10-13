@@ -28,8 +28,7 @@ def summarize(state):
         
     else:
         default_summary = existing_summary if existing_summary else 'The conversation just started, there is no summary yet'
-        return {"summary": state.get("summary", 'The conversation just started, there is no summary yet')}
-
+        return {"summary": default_summary}
 
 def agent(state):
     for i in range(3):
@@ -43,6 +42,7 @@ def agent(state):
             
             response = llm_with_tools.invoke(input_messages)
             return {"messages": [response]} 
+        
         except RateLimitError as e:
             if i==2:
                 print('GROQ API is out of reach close the app and enter again')

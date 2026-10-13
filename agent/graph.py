@@ -2,7 +2,7 @@ from langchain_core.messages import HumanMessage
 from langgraph.errors import GraphRecursionError
 import asyncio
 
-async def compiled_graph(graph, thread_id: str = "default_session"):
+async def compiled_graph(graph, thread_id: str):
     # Define or generate thread_id outside the loop for the current session
     thread_id = 'test-user-1' # str(uuid.uuid4())
     
@@ -40,3 +40,21 @@ async def compiled_graph(graph, thread_id: str = "default_session"):
             print("\n [SystemWarning] The query required too many steps. Please break down your requests in to smaller steps.")
         except Exception as e:
             print(f'\n[Error] {e}')
+            
+            
+async def run_agent(graph, message:str, thread_id:str):
+        
+        # create the config dictionary containing thread_id
+        config = {
+            "configurable": {
+                "thread_id": thread_id
+            },
+            "recursion_limit": 6,
+        }
+        
+        output_state = await graph.ainvoke({'messages': [HumanMessage(content = message)]}, 
+                                                config = config)
+        
+        final_response = output_state["messages"][-1]
+        
+        return final_response.content
